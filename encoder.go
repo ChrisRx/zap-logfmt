@@ -397,6 +397,12 @@ func (enc *logfmtEncoder) tryAddRuneSelf(b byte) bool {
 	if b >= utf8.RuneSelf {
 		return false
 	}
+
+	// ignore console color sequences
+	if b == 0x1b {
+		enc.buf.AppendByte(b)
+		return true
+	}
 	if 0x20 <= b && b != '\\' && b != '"' {
 		enc.buf.AppendByte(b)
 		return true
@@ -564,7 +570,7 @@ func (enc *literalEncoder) addSeparator() {
 }
 
 func needsQuotedValueRune(r rune) bool {
-	return r <= ' ' || r == '=' || r == '"' || r == utf8.RuneError
+	return r != 0x1b && r <= ' ' || r == '=' || r == '"' || r == utf8.RuneError
 }
 
 func addFields(enc zapcore.ObjectEncoder, fields []zapcore.Field) {
